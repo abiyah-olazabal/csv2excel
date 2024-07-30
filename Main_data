@@ -1,0 +1,28 @@
+import pandas as pd
+from csv_to_excel import archivosf
+import numpy as np
+
+df_casos = pd.read_excel("CASOS.xlsx", usecols = [21])
+df_casos.rename(columns={df_casos.columns[0]: 'OC'}, inplace=True)
+
+#FORMATEAR TAREAS
+tareas = archivosf(21,'report*.csv', ';')
+
+tareas.iloc[:, 4] = pd.to_datetime(tareas.iloc[:, 4].str.replace(',', ''), format='%d/%m/%Y %H:%M', errors='coerce')
+tareas = tareas[
+    ~tareas.iloc[:, 12].astype(str).str.contains(r'\bCerrado\b', case=False, na=False, regex=True)]
+tareas = tareas[tareas.iloc[:, 19].astype(str).str.startswith('Solicitud')]
+tareas = tareas.sort_values(by=tareas.columns[4], ascending=False)
+ruta_sf = r'C:\Insertar_ruta\TAREAS.xlsx'
+tareas.to_excel(ruta_sf, index=False)
+
+
+#GUARDAR ESTADO BACKSTORE
+df_bks = archivosf(15,'STATUS PEDIDOS FALABELLA 1P*.csv', ',')
+df_bks.iloc[1:, 0] = df_bks.iloc[1:, 0].astype(float)
+df_bks.rename(columns={df_bks.columns[0]: 'OC'}, inplace=True)
+
+filtered_bks = df_bks.merge(df_casos)
+print(filtered_bks)
+ruta_sf = r'C:\Insertar_ruta\BACKSTORE.xlsx'
+filtered_bks.to_excel(ruta_sf, index=False)
