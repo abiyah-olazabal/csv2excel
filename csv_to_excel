@@ -1,0 +1,31 @@
+import glob
+import os.path
+import pandas as pd
+
+def archivosf(ncolumna, nombrefile, separador):
+    directory = r'C:\Users\Downloads'
+    ruta = os.path.join(directory, nombrefile)
+    files = glob.glob(ruta)
+
+    if not files:
+        exit()
+    latest_file = None
+    latest_mtime = 0
+    
+    for file in files:
+        try:
+            data = pd.read_csv(file, encoding='latin-1', nrows=1, sep=separador, low_memory=False)
+            num_columns = data.shape[1]
+            if num_columns == ncolumna:
+                file_mtime = os.path.getmtime(file)
+                if file_mtime > latest_mtime:
+                    latest_mtime = file_mtime
+                    latest_file = file
+        except Exception as e:
+            print(f"Error al leer el archivo {file}: {e}")
+
+    if latest_file is None:
+        raise FileNotFoundError("No se encontró ningún archivo")
+    data = pd.read_csv(latest_file, encoding='latin-1', sep=separador, low_memory=False)
+    print('Ejecución terminada')
+    return data
